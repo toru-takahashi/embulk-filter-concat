@@ -1,0 +1,25 @@
+in:
+  type: file
+  path_prefix: ./input.csv
+  parser:
+    charset: UTF-8
+    newline: CRLF
+    type: csv
+    delimiter: ','
+    quote: '"'
+    escape: '"'
+    trim_if_not_quoted: false
+    skip_header_lines: 1
+    allow_extra_columns: false
+    allow_optional_columns: false
+    columns:
+    - {name: date, type: string}
+    - {name: time, type: string}
+    - {name: id, type: long}
+filters:
+- type: concat
+  name: datetime
+  columns:
+  - {name: date}
+  - {name: time}
+out: {type: stdout}
