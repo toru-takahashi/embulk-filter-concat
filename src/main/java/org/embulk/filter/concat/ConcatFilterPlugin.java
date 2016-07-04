@@ -1,6 +1,7 @@
 package org.embulk.filter.concat;
 
-import com.google.common.base.Optional;
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import org.embulk.config.Config;
 import org.embulk.config.ConfigDefault;
 import org.embulk.config.ConfigException;
@@ -11,21 +12,17 @@ import org.embulk.spi.Column;
 import org.embulk.spi.Exec;
 import org.embulk.spi.FilterPlugin;
 import org.embulk.spi.Page;
+import org.embulk.spi.PageBuilder;
 import org.embulk.spi.PageOutput;
 import org.embulk.spi.PageReader;
-import org.embulk.spi.PageBuilder;
 import org.embulk.spi.Schema;
-import org.embulk.spi.type.TimestampType;
-import org.embulk.spi.type.Types;
-import org.embulk.spi.time.Timestamp;
 import org.embulk.spi.type.JsonType;
+import org.embulk.spi.type.TimestampType;
 import org.embulk.spi.type.Type;
+import org.embulk.spi.type.Types;
+
 import java.util.ArrayList;
 import java.util.List;
-import com.google.common.collect.ImmutableList;
-import com.google.common.base.Joiner;
-import org.joda.time.DateTimeZone;
-
 
 public class ConcatFilterPlugin implements FilterPlugin
 {
