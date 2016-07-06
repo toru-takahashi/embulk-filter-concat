@@ -1,6 +1,7 @@
 package org.embulk.filter.concat;
 
-import com.google.common.base.Optional;
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import org.embulk.config.Config;
 import org.embulk.config.ConfigDefault;
 import org.embulk.config.ConfigException;
@@ -11,21 +12,17 @@ import org.embulk.spi.Column;
 import org.embulk.spi.Exec;
 import org.embulk.spi.FilterPlugin;
 import org.embulk.spi.Page;
+import org.embulk.spi.PageBuilder;
 import org.embulk.spi.PageOutput;
 import org.embulk.spi.PageReader;
-import org.embulk.spi.PageBuilder;
 import org.embulk.spi.Schema;
-import org.embulk.spi.type.TimestampType;
-import org.embulk.spi.type.Types;
-import org.embulk.spi.time.Timestamp;
 import org.embulk.spi.type.JsonType;
+import org.embulk.spi.type.TimestampType;
 import org.embulk.spi.type.Type;
+import org.embulk.spi.type.Types;
+
 import java.util.ArrayList;
 import java.util.List;
-import com.google.common.collect.ImmutableList;
-import com.google.common.base.Joiner;
-import org.joda.time.DateTimeZone;
-
 
 public class ConcatFilterPlugin implements FilterPlugin
 {
@@ -49,7 +46,8 @@ public class ConcatFilterPlugin implements FilterPlugin
         String getDelimiter();
     }
 
-    private void configure(PluginTask task, Schema inputSchema) {
+    private void configure(PluginTask task, Schema inputSchema)
+    {
         List<ColumnConfig> columns = task.getColumns();
 
         if (columns.size() < 2) {
@@ -82,7 +80,7 @@ public class ConcatFilterPlugin implements FilterPlugin
         int i = 0;
         Column outputColumn;
 
-        for (Column inputColumn: inputSchema.getColumns()) {
+        for (Column inputColumn : inputSchema.getColumns()) {
             outputColumn = new Column(i++, inputColumn.getName(), inputColumn.getType());
             builder.add(outputColumn);
         }
@@ -105,21 +103,24 @@ public class ConcatFilterPlugin implements FilterPlugin
             private final PageBuilder builder = new PageBuilder(Exec.getBufferAllocator(), outputSchema, output);
 
             @Override
-            public void finish() {
+            public void finish()
+            {
                 builder.finish();
             }
 
             @Override
-            public void close() {
+            public void close()
+            {
                 builder.close();
             }
 
             @Override
-            public void add(Page page) {
+            public void add(Page page)
+            {
                 reader.setPage(page);
                 while (reader.nextRecord()) {
                     ArrayList<String> buf = new ArrayList<String>();
-                    for (ColumnConfig target: columnConfigs) {
+                    for (ColumnConfig target : columnConfigs) {
                         Column column = outputSchema.lookupColumn(target.getName());
                         if (reader.isNull(column)) {
                             buf.add("");
@@ -127,18 +128,21 @@ public class ConcatFilterPlugin implements FilterPlugin
                         }
                         if (Types.STRING.equals(column.getType())) {
                             buf.add(reader.getString(column));
-                        } else if (Types.BOOLEAN.equals(column.getType())) {
+                        }
+                        else if (Types.BOOLEAN.equals(column.getType())) {
                             buf.add(String.valueOf(reader.getBoolean(column)));
-                        } else if (Types.DOUBLE.equals(column.getType())) {
+                        }
+                        else if (Types.DOUBLE.equals(column.getType())) {
                             buf.add(String.valueOf(reader.getDouble(column)));
-                        } else if (Types.LONG.equals(column.getType())) {
+                        }
+                        else if (Types.LONG.equals(column.getType())) {
                             buf.add(String.valueOf(reader.getLong(column)));
                         }
                     }
 
                     String output = Joiner.on(task.getDelimiter()).join(buf);
 
-                    for (Column column: outputSchema.getColumns()) {
+                    for (Column column : outputSchema.getColumns()) {
                         if (column.getName().equals(outputColumn.getName())) {
                             builder.setString(outputColumn, output);
                             continue;
@@ -149,15 +153,20 @@ public class ConcatFilterPlugin implements FilterPlugin
                         }
                         if (Types.STRING.equals(column.getType())) {
                             builder.setString(column, reader.getString(column));
-                        } else if (Types.BOOLEAN.equals(column.getType())) {
+                        }
+                        else if (Types.BOOLEAN.equals(column.getType())) {
                             builder.setBoolean(column, reader.getBoolean(column));
-                        } else if (Types.DOUBLE.equals(column.getType())) {
+                        }
+                        else if (Types.DOUBLE.equals(column.getType())) {
                             builder.setDouble(column, reader.getDouble(column));
-                        } else if (Types.LONG.equals(column.getType())) {
+                        }
+                        else if (Types.LONG.equals(column.getType())) {
                             builder.setLong(column, reader.getLong(column));
-                        } else if (Types.TIMESTAMP.equals(column.getType())) {
+                        }
+                        else if (Types.TIMESTAMP.equals(column.getType())) {
                             builder.setTimestamp(column, reader.getTimestamp(column));
-                        } else if (Types.JSON.equals(column.getType())) {
+                        }
+                        else if (Types.JSON.equals(column.getType())) {
                             builder.setJson(column, reader.getJson(column));
                         }
                     }
